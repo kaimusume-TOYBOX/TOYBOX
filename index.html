@@ -3,80 +3,166 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>会員証</title>
-
+  <title>TOYBOX 会員証</title>
   <script src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/qrcode/build/qrcode.min.js"></script>
-
   <style>
+    * {
+      box-sizing: border-box;
+    }
+
     body {
       margin: 0;
-      font-family: sans-serif;
-      background: #f2f2f2;
+      font-family: -apple-system, BlinkMacSystemFont, "Helvetica Neue", sans-serif;
+      background:
+        radial-gradient(circle at top left, rgba(255,255,255,0.15), transparent 30%),
+        linear-gradient(135deg, #0f172a, #1e3a8a 45%, #0ea5e9);
+      min-height: 100vh;
       display: flex;
-      justify-content: center;
       align-items: center;
-      height: 100vh;
-    }
-    .card {
-      background: white;
+      justify-content: center;
       padding: 20px;
-      border-radius: 12px;
-      width: 90%;
-      max-width: 400px;
-      text-align: center;
-      box-shadow: 0 4px 20px rgba(0,0,0,0.1);
     }
+
+    .card {
+      width: 100%;
+      max-width: 420px;
+      background: rgba(255,255,255,0.12);
+      border: 1px solid rgba(255,255,255,0.2);
+      backdrop-filter: blur(14px);
+      border-radius: 24px;
+      padding: 28px 22px 30px;
+      color: #fff;
+      box-shadow: 0 20px 60px rgba(0,0,0,0.35);
+      position: relative;
+      overflow: hidden;
+    }
+
+    .card::before,
+    .card::after {
+      content: "";
+      position: absolute;
+      border-radius: 50%;
+      background: rgba(255,255,255,0.08);
+    }
+
+    .card::before {
+      width: 180px;
+      height: 180px;
+      top: -60px;
+      right: -60px;
+    }
+
+    .card::after {
+      width: 120px;
+      height: 120px;
+      bottom: -40px;
+      left: -40px;
+    }
+
+    .brand {
+      font-size: 14px;
+      letter-spacing: 2px;
+      opacity: 0.9;
+      margin-bottom: 10px;
+    }
+
     h1 {
-      margin: 0 0 10px;
+      margin: 0 0 18px;
+      font-size: 34px;
+      line-height: 1.1;
     }
+
+    #status {
+      margin: 20px 0;
+      opacity: 0.9;
+    }
+
+    .main {
+      display: none;
+      text-align: center;
+    }
+
     .name {
-      font-size: 20px;
-      margin: 10px 0;
-      font-weight: bold;
+      font-size: 28px;
+      font-weight: 800;
+      margin-bottom: 10px;
     }
-    .id {
+
+    .memberno {
+      font-size: 15px;
+      opacity: 0.95;
+      margin-bottom: 20px;
+      letter-spacing: 1px;
+    }
+
+    .qr-wrap {
+      background: #fff;
+      border-radius: 18px;
+      padding: 14px;
+      display: inline-block;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.18);
+    }
+
+    canvas {
+      display: block;
+    }
+
+    .sub {
+      margin-top: 14px;
       font-size: 12px;
-      color: #666;
-      word-break: break-all;
+      opacity: 0.85;
     }
   </style>
 </head>
-
 <body>
   <div class="card">
+    <div class="brand">MINI4WD SHOP TOYBOX</div>
     <h1>会員証</h1>
+
     <p id="status">読み込み中...</p>
 
-    <div id="main" style="display:none;">
+    <div id="main" class="main">
       <div class="name" id="name"></div>
-      <div class="id" id="userid"></div>
-      <canvas id="qrcode"></canvas>
+      <div class="memberno" id="userid"></div>
+
+      <div class="qr-wrap">
+        <canvas id="qrcode"></canvas>
+      </div>
+
+      <div class="sub">入店時・受付時にこのQRをご提示ください</div>
     </div>
   </div>
 
   <script>
     async function main() {
-      await liff.init({ liffId: "2009625340-k0DD7BH0" });
+      try {
+        await liff.init({ liffId: "2009625340-k0DD7BH0" });
 
-      if (!liff.isLoggedIn()) {
-        liff.login();
-        return;
+        if (!liff.isLoggedIn()) {
+          liff.login();
+          return;
+        }
+
+        const profile = await liff.getProfile();
+        const memberNo = "TOYBOX-" + profile.userId.slice(-6).toUpperCase();
+
+        document.getElementById("status").style.display = "none";
+        document.getElementById("main").style.display = "block";
+        document.getElementById("name").textContent = profile.displayName;
+        document.getElementById("userid").textContent = "会員番号: " + memberNo;
+
+        QRCode.toCanvas(
+          document.getElementById("qrcode"),
+          memberNo,
+          { width: 220, margin: 1 },
+          function(error) {
+            if (error) console.error(error);
+          }
+        );
+      } catch (e) {
+        document.getElementById("status").textContent = "エラー: " + e.message;
       }
-
-      const profile = await liff.getProfile();
-
-      document.getElementById("status").style.display = "none";
-      document.getElementById("main").style.display = "block";
-
-      document.getElementById("name").textContent = profile.displayName;
-      document.getElementById("userid").textContent = profile.userId;
-
-      QRCode.toCanvas(
-        document.getElementById("qrcode"),
-        profile.userId,
-        { width: 200 }
-      );
     }
 
     main();
