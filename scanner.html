@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>TOYBOX QR読取</title>
+  <script src="https://unpkg.com/html5-qrcode"></script>
+  <style>
+    body {
+      margin: 0;
+      font-family: sans-serif;
+      background: #111827;
+      color: white;
+      text-align: center;
+      padding: 20px;
+    }
+
+    h1 {
+      margin-bottom: 12px;
+    }
+
+    #reader {
+      width: 100%;
+      max-width: 420px;
+      margin: 0 auto;
+      background: white;
+      border-radius: 16px;
+      overflow: hidden;
+    }
+
+    .result {
+      margin-top: 20px;
+      padding: 16px;
+      border-radius: 14px;
+      background: rgba(255,255,255,0.08);
+      word-break: break-all;
+      font-size: 20px;
+      font-weight: bold;
+    }
+  </style>
+</head>
+<body>
+  <h1>QRコード読取</h1>
+  <p>会員証のQRをかざしてください</p>
+
+  <div id="reader"></div>
+
+  <div class="result" id="result">未読取</div>
+
+  <script>
+    function onScanSuccess(decodedText) {
+      document.getElementById("result").textContent = "読取結果: " + decodedText;
+    }
+
+    function onScanFailure(error) {
+    }
+
+    const html5QrCodeScanner = new Html5QrcodeScanner(
+      "reader",
+      { fps: 10, qrbox: 220 },
+      false
+    );
+    html5QrCodeScanner.render(onScanSuccess, onScanFailure);
+  </script>
+</body>
+</html>
